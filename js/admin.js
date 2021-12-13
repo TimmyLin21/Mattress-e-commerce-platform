@@ -6,15 +6,18 @@ function renderChart(){
     data: {
         type: "pie",
         columns: itemArr,
-        colors: colorObj,
     },
+    color:{
+      pattern:['#1f77b4','#9D7FEA','#5434A7','#301E5F']
+    }
   });
 }
 // 整理品項數量
 let itemObj={};
 let itemArr=[];
-let colorObj={};
 function getItemNum(){
+  itemObj={};
+  itemArr=[];
   orderData.forEach(order=>{
     order.products.forEach(item=>{
       if(!itemObj[`${item.title}`]){
@@ -53,11 +56,6 @@ function getItemNum(){
     }
   })
   itemArr=arr
-  // colorObj
-  let color=['#1f77b4','#9D7FEA','#5434A7','#301E5F']
-  itemArr.forEach((item,i)=>{
-    colorObj[`${item[0]}`]=color[i]
-  })
 }
 
 const UID='1UyE6yvoyzfP3B87geEOWqv0VuI3'
@@ -98,6 +96,7 @@ function renderOrderList(){
   orderData.forEach(data=>{
     let status=data.paid?'已處理':'未處理';
     let title="";
+    let time=(new Date(data.createdAt*1000)).toLocaleDateString()
     data.products.forEach(item=>{
       title+=`<p>${item.title}</p>`
     })
@@ -113,7 +112,7 @@ function renderOrderList(){
       <td>
         ${title}
       </td>
-      <td>2021/03/08</td>
+      <td>${time}</td>
       <td class="orderStatus">
         <a href="#" class='editLink' data-id=${data.id}>${status}</a>
       </td>

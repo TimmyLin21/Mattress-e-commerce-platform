@@ -368,9 +368,28 @@
                 </select>
             </div>
         </div>
-        <input type="submit" value="送出預訂資料" class="orderInfo-btn">
+        <input type="submit" value="送出預訂資料" class="orderInfo-btn disabledInput">
     </form>
 </section>
+<div class="modal bg-grey" id="editModal">
+    <label for="editNum">請輸入想變更的數量</label>
+    <input type="number" id="editNum" min="1" max="20">
+    <a href="#" class="material-icons confirmBtn">
+        done
+    </a>
+    <a href="#" class="material-icons closeBtn">
+        close
+    </a>
+</div>
+<div class="modal bg-warning" id="deleteModal">
+    <p>確認刪除購物車嗎？</p>
+    <a href="#" class="material-icons confirmBtn">
+        done
+    </a>
+    <a href="#" class="material-icons closeBtn">
+        close
+    </a>
+</div>
 
 <!-- 預設 JS，請同學不要修改此處 -->
 <script>

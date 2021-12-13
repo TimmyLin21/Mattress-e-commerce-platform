@@ -90,63 +90,120 @@ function getCartList(){
 }
 const cartList=document.querySelector('.shoppingCart-table')
 function renderCartList(){
-  let str=`<tr>
-    <th width="40%">品項</th>
-    <th width="15%">單價</th>
-    <th width="15%">數量</th>
-    <th width="15%">金額</th>
-    <th width="15%"></th>
-  </tr>`
-  cartData.carts.forEach(data=>{
+  if(cartData.carts.length!=0){
+    let str=`<tr>
+      <th width="40%">品項</th>
+      <th width="15%">單價</th>
+      <th width="15%">數量</th>
+      <th width="15%">金額</th>
+      <th width="15%"></th>
+    </tr>`
+    cartData.carts.forEach(data=>{
+      str+=`
+      <tr>
+          <td>
+              <div class="cardItem-title">
+                  <img src=${data.product.images} alt="">
+                  <p>${data.product.title}</p>
+              </div>
+          </td>
+          <td>${data.product.price}</td>
+          <td>${data.quantity}</td>
+          <td>NT$${data.product.price}</td>
+          <td class="btnGroup">
+              <a href="#" class="material-icons editItemBtn" data-id=${data.id} data-num=${data.quantity}>
+                  edit
+              </a>            
+              <a href="#" class="material-icons deleteItemBtn" data-id=${data.id}>
+                  clear
+              </a>
+          </td>
+      </tr>`
+    })
     str+=`
     <tr>
-        <td>
-            <div class="cardItem-title">
-                <img src=${data.product.images} alt="">
-                <p>${data.product.title}</p>
-            </div>
-        </td>
-        <td>${data.product.price}</td>
-        <td>${data.quantity}</td>
-        <td>NT$${data.product.price}</td>
-        <td class="discardBtn">
-            <a href="#" class="material-icons deleteItemBtn" data-id=${data.id}>
-                clear
-            </a>
-        </td>
-    </tr>`
-  })
-  str+=`
-  <tr>
-    <td>
-        <a href="#" class="discardAllBtn">刪除所有品項</a>
-    </td>
-    <td></td>
-    <td></td>
-    <td>
-        <p>總金額</p>
-    </td>
-    <td>NT$${cartData.finalTotal}</td>
-  </tr>  
-  `
-  cartList.innerHTML=str
-  // 刪除按鈕監聽
-  const deleteItemBtns=document.querySelectorAll('.deleteItemBtn');
-  deleteItemBtns.forEach(btn=>{
-    btn.addEventListener('click',(e)=>{
-      e.preventDefault();
-      let id = e.target.getAttribute('data-id')
-      deleteItem(id);
+      <td>
+          <a href="#" class="discardAllBtn">刪除所有品項</a>
+      </td>
+      <td></td>
+      <td></td>
+      <td>
+          <p>總金額</p>
+      </td>
+      <td>NT$${cartData.finalTotal}</td>
+    </tr>  
+    `
+    cartList.innerHTML=str
+    // 修改按鈕監聽
+    const editBtns=document.querySelectorAll('.editItemBtn');
+    editBtns.forEach(btn=>{
+      btn.addEventListener('click',(e)=>{
+        editId = e.target.getAttribute('data-id')
+        editNum.value=e.target.getAttribute('data-num')
+        editModal.classList.add('active')
+      })
     })
-  })
-  // 刪除全部按鈕監聽
-  const deleteAllBtn=document.querySelector('.discardAllBtn')
-  deleteAllBtn.addEventListener('click',(e)=>{
-    e.preventDefault();
-    deleteAll();
+    // 刪除按鈕監聽
+    const deleteItemBtns=document.querySelectorAll('.deleteItemBtn');
+    deleteItemBtns.forEach(btn=>{
+      btn.addEventListener('click',(e)=>{
+        e.preventDefault();
+        let id = e.target.getAttribute('data-id')
+        deleteItem(id);
+      })
+    })
+    // 刪除全部按鈕監聽
+    const deleteAllBtn=document.querySelector('.discardAllBtn')
+    deleteAllBtn.addEventListener('click',(e)=>{
+      deleteModal.classList.add('active')
+    })
+  }else{
+    cartList.innerHTML='<p class="text-muted">購物車內還沒有商品喔！</p>'
+  }
+}
+// 編輯購物車
+function editItem(id,num){
+  axios.patch('https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/carts',{
+    "data":{
+      "id":id,
+      "quantity":num
+    }
+  }).then(res=>{
+    getCartList()
+    cartList.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }).catch(err=>{
+    console.log(err.response);
   })
 }
-
+// Modal監聽
+// delModal
+const deleteModal=document.querySelector('#deleteModal')
+const delConfirmBtn=document.querySelector('#deleteModal .confirmBtn')
+const delCloseBtn=document.querySelector('#deleteModal .closeBtn')
+delConfirmBtn.addEventListener('click',(e)=>{
+  alert('刪除成功')
+  deleteAll();
+  deleteModal.classList.remove('active')
+})
+delCloseBtn.addEventListener('click',(e)=>{
+  e.preventDefault()
+  deleteModal.classList.remove('active')
+})
+// editModal
+const editModal=document.querySelector('#editModal')
+const editConfirmBtn=document.querySelector('#editModal .confirmBtn')
+const editCloseBtn=document.querySelector('#editModal .closeBtn')
+const editNum=document.querySelector('#editNum')
+let editId;
+editCloseBtn.addEventListener('click',(e)=>{
+  e.preventDefault()
+  editModal.classList.remove('active')
+})
+editConfirmBtn.addEventListener('click',function edit(){
+  let num=+editNum.value
+  editItem(editId,num)
+  editModal.classList.remove('active')
+})
 // 刪除單個項目
 function deleteItem(id){
   axios.delete(`https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/carts/${id}`)
@@ -161,6 +218,7 @@ function deleteAll(){
   axios.delete('https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/carts')
     .then(res=>{
       getCartList()
+      cartList.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }).catch(err=>{
       console.log(err.response);
     })
@@ -202,6 +260,10 @@ function formValidate(){
     Object.keys(errors).forEach(key=>{
       document.querySelector(`p[data-message=${key}]`).textContent=errors[key]
     })
+    // submit control
+    submitBtn.classList.add('disabledInput')
+  }else{
+    submitBtn.classList.remove('disabledInput')
   }
 }
   //input監聽
