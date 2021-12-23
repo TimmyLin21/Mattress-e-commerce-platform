@@ -37,8 +37,8 @@ Admin panel
 
 ### Links
 
-- [Index](https://timmylin21.github.io/JS-FinalProject/)
-- [Admin](https://timmylin21.github.io/JS-FinalProject/admin.html)
+- [Index](https://timmylin21.github.io/Mattress-e-commerce-platform/)
+- [Admin](https://timmylin21.github.io/Mattress-e-commerce-platform/admin.html)
 
 ## My process
 
