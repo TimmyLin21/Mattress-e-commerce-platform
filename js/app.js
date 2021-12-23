@@ -1,12 +1,15 @@
+// API
+const api='https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/'
 // 取得和渲染產品列表
 const productList=document.querySelector('.productWrap')
 let allProductData;
 function getProductList(){
-  axios.get('https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/products')
+  axios.get(`${api}products`)
     .then(res=>{
       allProductData=res.data.products;
       renderProductList(allProductData)
-      filterProductList()
+      addProductListEvent();
+      filterProductList();
     })
 }
 function renderProductList(data){
@@ -22,7 +25,9 @@ function renderProductList(data){
 </li>`
   })
   productList.innerHTML=str
-  // 購物車按鈕監聽
+}
+// 購物車按鈕監聽
+function addProductListEvent() {
   productList.addEventListener('click',(e)=>{
     if(e.target.nodeName=='A'){
       e.preventDefault();
@@ -64,13 +69,15 @@ function addToCart(id){
       quantity=data.quantity+1
     }
   })
-  axios.post('https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/carts',{
+  axios.post(`${api}carts`,{
     "data":{
       'productId':id,
       'quantity':quantity
     }
   }).then(res=>{
-    getCartList()
+    cartData=res.data
+    renderCartList()    
+    alert('成功加入購物車！')
   }).catch(err=>{
     console.log(err.response)
   })
@@ -79,7 +86,7 @@ function addToCart(id){
 // 渲染購物車選單
 let cartData;
 function getCartList(){
-  axios.get('https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/carts')
+  axios.get(`${api}carts`)
     .then(res=>{
       cartData=res.data
       renderCartList()
@@ -109,7 +116,7 @@ function renderCartList(){
           </td>
           <td>${data.product.price}</td>
           <td>${data.quantity}</td>
-          <td>NT$${data.product.price}</td>
+          <td>NT$${data.product.price*data.quantity}</td>
           <td class="btnGroup">
               <a href="#" class="material-icons editItemBtn" data-id=${data.id} data-num=${data.quantity}>
                   edit
@@ -163,14 +170,16 @@ function renderCartList(){
 }
 // 編輯購物車
 function editItem(id,num){
-  axios.patch('https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/carts',{
+  axios.patch(`${api}carts`,{
     "data":{
       "id":id,
       "quantity":num
     }
   }).then(res=>{
-    getCartList()
+    cartData=res.data
+    renderCartList()
     cartList.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    alert('更改成功！')
   }).catch(err=>{
     console.log(err.response);
   })
@@ -206,18 +215,21 @@ editConfirmBtn.addEventListener('click',function edit(){
 })
 // 刪除單個項目
 function deleteItem(id){
-  axios.delete(`https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/carts/${id}`)
+  axios.delete(`${api}carts/${id}`)
     .then(res=>{
-      getCartList()
+      cartData=res.data
+      renderCartList()
+      alert('刪除成功！')
     }).catch(err=>{
       console.log(err.response);
     })
 }
 // 刪除全部項目
 function deleteAll(){
-  axios.delete('https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/carts')
+  axios.delete(`${api}carts`)
     .then(res=>{
-      getCartList()
+      cartData=res.data
+      renderCartList()
       cartList.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }).catch(err=>{
       console.log(err.response);
@@ -285,14 +297,14 @@ submitBtn.addEventListener('click',(e)=>{
   }
 })
 function postOrder(){
-  axios.post('https://livejs-api.hexschool.io/api/livejs/v1/customer/tim/orders',{
+  axios.post(`${api}orders`,{
     "data": {
       "user": {
-        "name": inputs[0].value,
-        "tel": inputs[1].value,
-        "email": inputs[2].value,
-        "address": inputs[3].value,
-        "payment": inputs[4].value
+        "name": inputs[0].value.trim(),
+        "tel": inputs[1].value.trim(),
+        "email": inputs[2].value.trim(),
+        "address": inputs[3].value.trim(),
+        "payment": inputs[4].value.trim(),
       }
     }    
   }).then(res=>{

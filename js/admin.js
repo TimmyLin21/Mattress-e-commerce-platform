@@ -1,16 +1,36 @@
+// 圖表選擇
+const chartSelect = document.querySelector('.chartSelect');
+const chartTitle = document.querySelector('.section-title');
+chartSelect.addEventListener('change',renderChart);
 // C3.js
 function renderChart(){
-  getItemNum();
-  let chart = c3.generate({
-    bindto: '#chart', // HTML 元素綁定
-    data: {
-        type: "pie",
-        columns: itemArr,
-    },
-    color:{
-      pattern:['#1f77b4','#9D7FEA','#5434A7','#301E5F']
-    }
-  });
+  if(chartSelect.value === 'product'){
+    getItemNum();
+    let chart = c3.generate({
+      bindto: '#chart', // HTML 元素綁定
+      data: {
+          type: "pie",
+          columns: itemArr,
+      },
+      color:{
+        pattern:['#1f77b4','#9D7FEA','#5434A7','#301E5F']
+      }
+    });
+    chartTitle.textContent = '全品項營收比重';
+  } else {
+    getCateArr();
+    let chart = c3.generate({
+      bindto: '#chart', // HTML 元素綁定
+      data: {
+          type: "pie",
+          columns: cateArr,
+      },
+      color:{
+        pattern:['#fbbf24','#fb923c','#f87171']
+      }
+    });
+    chartTitle.textContent = '全產品類別營收比重';
+  }
 }
 // 整理品項數量
 let itemObj={};
@@ -58,17 +78,40 @@ function getItemNum(){
   itemArr=arr
 }
 
-const UID='1UyE6yvoyzfP3B87geEOWqv0VuI3'
+let cateObj = 
+{
+  床架: 0,
+  收納: 0,
+  窗簾: 0,
+};
+let cateArr = [];
+function getCateArr() {
+  if(cateArr.length === 0){
+    orderData.forEach((order) => {
+      order.products.forEach((product) => {
+        cateObj[product.category] += product.quantity
+      })
+    })
+    let keys = Object.keys(cateObj);
+    keys.forEach((key) => {
+      cateArr.push([key,cateObj[key]])
+    })
+  }
+}
+// API
+const UID = '1UyE6yvoyzfP3B87geEOWqv0VuI3'
+const header = 
+{
+  headers:{
+    'authorization': UID
+  }
+};
+const api = 'https://livejs-api.hexschool.io/api/livejs/v1/admin/tim/orders'  
 // 取得訂單列表
 let orderData
 function getOrderList(){
-  axios.get('https://livejs-api.hexschool.io/api/livejs/v1/admin/tim/orders',
-    {
-      headers:{
-        'authorization': UID
-      }
-    }
-  ).then(res=>{
+  axios.get(api, header)
+  .then(res=>{
     orderData=res.data.orders
     renderOrderList()
     renderChart()
@@ -145,14 +188,12 @@ function renderOrderList(){
 
 // 刪除訂單
 function deleteOrder(id){
-  axios.delete(`https://livejs-api.hexschool.io/api/livejs/v1/admin/tim/orders/${id}`,
-    {
-      headers:{
-        'authorization': UID
-      }
-    }  
-  ).then(res=>{
-    getOrderList()
+  axios.delete(`api/${id}`, header)
+  .then(res=>{
+    orderData=res.data.orders
+    renderOrderList()
+    renderChart()
+    alert('刪除成功！')
   }).catch(err=>{
     console.log(err.response);
   })
@@ -161,39 +202,49 @@ function deleteOrder(id){
 const delAllBtn=document.querySelector('.discardAllBtn')
 delAllBtn.addEventListener('click',(e)=>{
   e.preventDefault();
-  deleteAll()
+  deleteModal.classList.add('active');
 })
 function deleteAll(){
-  axios.delete(`https://livejs-api.hexschool.io/api/livejs/v1/admin/tim/orders`,
-    {
-      headers:{
-        'authorization': UID
-      }
-    }  
-  ).then(res=>{
-    getOrderList()
+  axios.delete( api, header) 
+  .then(res=>{
+    orderData=res.data.orders
+    renderOrderList()
+    renderChart()
+    alert('刪除成功！')
   }).catch(err=>{
     console.log(err.response);
   })  
 }
 
+// Modal監聽
+// delModal
+const deleteModal=document.querySelector('#deleteModal')
+const delConfirmBtn=document.querySelector('#deleteModal .confirmBtn')
+const delCloseBtn=document.querySelector('#deleteModal .closeBtn')
+delConfirmBtn.addEventListener('click',(e)=>{
+  deleteAll();
+  deleteModal.classList.remove('active')
+})
+delCloseBtn.addEventListener('click',(e)=>{
+  e.preventDefault()
+  deleteModal.classList.remove('active')
+})
+
 // 修改訂單
 function editOrder(id,status){
   status=status=='未處理'?true:false;
-  axios.put('https://livejs-api.hexschool.io/api/livejs/v1/admin/tim/orders',
+  axios.put( api ,
     {
       "data":{
         'id':id,
         'paid':status
       }
-    },
-    {
-      headers:{
-        'authorization': UID
-      }
-    } 
-  ).then(res=>{
-    getOrderList()
+    }, header)
+  .then(res=>{
+    orderData=res.data.orders
+    renderOrderList()
+    renderChart()
+    alert('修改成功！')
   }).catch(err=>{
     console.log(err.response);
   }) 
